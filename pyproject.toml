@@ -1,0 +1,5 @@
+[project]
+name = "recoveriq"
+version = "0.1.0"
+description = "Synthetic, correlated payment histories for RecoverIQ"
+requires-python = ">=3.11"
