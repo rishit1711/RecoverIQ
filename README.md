@@ -45,3 +45,21 @@ the customer/payment IDs, amount, behaviour, failure type, attempt number,
 action, ground-truth outcome and timestamp. `PaymentHistory.statistics()`
 returns distribution and recovery-rate checks. `writeJsonLines(path)` exports
 one such labelled record per line for the Day 3 prediction layer.
+
+## Day 3 prediction engine
+
+`com.recoveriq.prediction.ActionConditionedRecoveryPredictionEngine` consumes
+the Day 2 `PaymentHistory.records()` list and returns one `RecoveryPrediction`
+per caller-supplied candidate action. It estimates a smoothed observed success
+rate using this deterministic evidence backoff:
+
+1. customer + failure type + action
+2. customer + action
+3. customer behaviour segment + failure type + action
+4. failure type + action
+5. global action data, then a configured prior when no data exists
+
+When enough records exist in the selected scope, it also restricts evidence to
+the same attempt number and amount band. The engine reports its evidence level,
+sample size, observed rate, smoothed probability, and deterministic reason. It
+does not choose a best action; that is reserved for Day 4.
