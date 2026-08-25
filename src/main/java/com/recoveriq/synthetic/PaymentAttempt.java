@@ -7,5 +7,6 @@ public record PaymentAttempt(
         Instant attemptedAt,
         AttemptStatus status,
         FailureType failureType,
+        RecoveryAction actionTaken,
         String paymentMethod,
         boolean customerEngaged) { }

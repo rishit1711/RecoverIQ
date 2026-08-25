@@ -1,6 +1,7 @@
 # RecoverIQ synthetic payment histories
 
-This package creates synthetic payment histories for exercising RecoverIQ's
+The repository includes dependency-free Python and Java generators for
+synthetic payment histories that exercise RecoverIQ's
 decision engine. It intentionally models dependencies: a customer's latent
 financial stability, engagement, payment-method health and risk propensity
 drive their payments; payment-level funds, method, authentication and risk
@@ -21,3 +22,26 @@ configuration without disconnecting the causal relationships. Each JSONL record
 is one payment with its complete ordered attempt sequence and eventual outcome.
 
 Run the tests with `python -m unittest discover -s tests`.
+
+## Java
+
+The Java implementation lives in `src/main/java/com/recoveriq/synthetic` and
+requires Java 21. Compile and run its tests without a build tool:
+
+```powershell
+javac -d out (Get-ChildItem -Recurse src/main/java,src/test/java -Filter *.java | ForEach-Object FullName)
+java -cp out com.recoveriq.synthetic.SyntheticPaymentHistoryGeneratorTest
+```
+
+Use `new SyntheticPaymentHistoryGenerator(GeneratorConfig.defaults()).generate()`.
+The Java configuration supports an exact `datasetSize` (20, 1,000, 10,000+),
+customer count, seed, retry limit and timing, failure-type multipliers, action
+selection weights, action-success multipliers, and customer archetype weights.
+It also exposes each archetype's stability, engagement, payment-method health,
+and risk means through `customerBehaviourProfiles`.
+
+`PaymentHistory.records()` returns flat `HistoricalRecoveryRecord` values with
+the customer/payment IDs, amount, behaviour, failure type, attempt number,
+action, ground-truth outcome and timestamp. `PaymentHistory.statistics()`
+returns distribution and recovery-rate checks. `writeJsonLines(path)` exports
+one such labelled record per line for the Day 3 prediction layer.
