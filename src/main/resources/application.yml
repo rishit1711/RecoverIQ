@@ -1,0 +1,8 @@
+spring:
+  datasource:
+    url: ${RECOVERIQ_DB_URL:jdbc:postgresql://localhost:5432/recoveriq}
+    username: ${RECOVERIQ_DB_USERNAME:recoveriq}
+    password: ${RECOVERIQ_DB_PASSWORD:recoveriq}
+  jpa:
+    hibernate.ddl-auto: update
+    open-in-view: false
