@@ -63,3 +63,20 @@ When enough records exist in the selected scope, it also restricts evidence to
 the same attempt number and amount band. The engine reports its evidence level,
 sample size, observed rate, smoothed probability, and deterministic reason. It
 does not choose a best action; that is reserved for Day 4.
+
+## Day 4 next-best-action optimizer
+
+`com.recoveriq.optimizer.NextBestActionOptimizer` consumes Day 3
+`RecoveryPrediction` values—never the underlying historical data—and returns
+an auditable `NextBestActionResult`. For every supplied prediction it checks
+failure-type eligibility and the configured retry limit, then calculates:
+
+```text
+score = predicted success probability × recoverable amount − action cost − friction penalty
+```
+
+Costs, friction penalties, eligible actions by failure type, retry actions, and
+the maximum retry count are all explicit in `OptimizerConfig`. The result
+includes every eligible/ineligible evaluation plus the selected action and a
+reason based on the actual score. Day 5 can use that result to execute the
+chosen workflow; the optimizer itself performs no payment or workflow action.
