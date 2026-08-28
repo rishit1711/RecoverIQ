@@ -2,7 +2,7 @@ package com.recoveriq.api;
 import com.recoveriq.optimizer.*; import com.recoveriq.synthetic.FailureType; import jakarta.validation.constraints.*; import org.springframework.http.*; import org.springframework.web.bind.annotation.*;
 @RestController @RequestMapping("/api") public class RecoveryController {
  private final RecoveryApplicationService service; public RecoveryController(RecoveryApplicationService s){service=s;}
- @GetMapping("/health") public java.util.Map<String,String> health(){return java.util.Map.of("status","ok");}
+ @RequestMapping(value="/health",method={RequestMethod.GET,RequestMethod.POST}) public java.util.Map<String,String> health(){return java.util.Map.of("status","ok");}
  @PostMapping("/recovery/evaluate") public ResponseEntity<?> evaluate(@RequestBody @jakarta.validation.Valid Request r){ var x=service.evaluateExplained(r.customerId,r.paymentId,r.amount,FailureType.valueOf(r.failureType),r.attemptNumber); if(x.result().selectedEvaluation().isEmpty())return ResponseEntity.status(422).body(java.util.Map.of("message",x.explanation(),"decisionTrace",x.trace())); var e=x.result().selectedEvaluation().get(); return ResponseEntity.ok(java.util.Map.of("paymentId",r.paymentId,"recommendedAction",e.action(),"successProbability",e.predictedSuccessProbability(),"expectedRecoveryValue",e.expectedRecoveryValue(),"decisionExplanation",x.explanation(),"decisionTrace",x.trace())); }
  @GetMapping("/recovery/{paymentId}") public Object get(@PathVariable String paymentId){return service.find(paymentId);}
  @PostMapping("/recovery/run") public Object run(@RequestBody @jakarta.validation.Valid Request r){return service.run(r.customerId,r.paymentId,r.amount,FailureType.valueOf(r.failureType),r.attemptNumber);}
