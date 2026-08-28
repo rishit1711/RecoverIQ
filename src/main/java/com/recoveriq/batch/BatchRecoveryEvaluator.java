@@ -10,16 +10,16 @@ import java.util.*;
 public final class BatchRecoveryEvaluator {
     public record EvaluationCase(RecoveryWorkflow.Case recoveryCase, CustomerArchetype behaviour) { }
     public record Result(int totalPayments, long revenueAtRisk, long baselineRecoveredRevenue, long recoverIQRecoveredRevenue,
-            double recoveryRate, double revenueRecoveryRate, int interventionCount, int unproductiveAttempts, double improvementPercentage) { }
+            double baselineRecoveryRate,double recoveryRate, double revenueRecoveryRate, int interventionCount, int unproductiveAttempts, double improvementPercentage) { }
     private final ActionConditionedRecoveryPredictionEngine predictor; private final NextBestActionOptimizer optimizer;
     private final RecoveryWorkflow.Config workflowConfig; private final RecoveryWorkflow.Executor executor;
     public BatchRecoveryEvaluator(ActionConditionedRecoveryPredictionEngine p, NextBestActionOptimizer o, RecoveryWorkflow.Config c, RecoveryWorkflow.Executor e) { predictor=p; optimizer=o; workflowConfig=c; executor=e; }
     public Result evaluate(List<EvaluationCase> cases) {
-        long risk=0, base=0, iq=0; int recovered=0, interventions=0, unproductive=0;
+        long risk=0, base=0, iq=0; int recovered=0, baselineRecovered=0, interventions=0, unproductive=0;
         for (EvaluationCase item : cases) { int amount=item.recoveryCase().amount(); risk+=amount;
-            Run baseline=run(item, true); Run intelligent=run(item, false); if(baseline.recovered) base+=amount; if(intelligent.recovered){iq+=amount;recovered++;} interventions+=intelligent.actions; unproductive+=intelligent.failed;
+            Run baseline=run(item, true); Run intelligent=run(item, false); if(baseline.recovered){ base+=amount;baselineRecovered++;} if(intelligent.recovered){iq+=amount;recovered++;} interventions+=intelligent.actions; unproductive+=intelligent.failed;
         }
-        return new Result(cases.size(),risk,base,iq,cases.isEmpty()?0:recovered/(double)cases.size(),risk==0?0:iq/(double)risk,interventions,unproductive,base==0?0:(iq-base)*100.0/base);
+        return new Result(cases.size(),risk,base,iq,cases.isEmpty()?0:baselineRecovered/(double)cases.size(),cases.isEmpty()?0:recovered/(double)cases.size(),risk==0?0:iq/(double)risk,interventions,unproductive,base==0?0:(iq-base)*100.0/base);
     }
     private Run run(EvaluationCase item, boolean baseline) {
         RecoveryWorkflow w=new RecoveryWorkflow(item.recoveryCase(),workflowConfig); int failed=0;
